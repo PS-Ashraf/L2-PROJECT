@@ -1,0 +1,1 @@
+{"tasks": [{"name": "Python Study", "duration_minutes": 120, "priority": "high", "deadline": "18:00", "fixed": false}, {"name": "Morning Meeting", "duration_minutes": 60, "priority": "high", "fixed": true, "start_time": "10:00"}]}

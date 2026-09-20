@@ -1,0 +1,13 @@
+{
+  "events": [
+    {
+      "id": "event_1",
+      "name": "Morning Meeting",
+      "duration_minutes": 60,
+      "priority": "high",
+      "start_time": "10:00",
+      "deadline": null,
+      "fixed": true
+    }
+  ]
+}
