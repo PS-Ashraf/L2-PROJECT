@@ -1,0 +1,16 @@
+# Bytecode and Python Cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual Environments
+venv/
+.venv/
+
+# Local Environment and Secrets
+.env
+.env.local
+!.env.example
+
+# Local logs
+*.log

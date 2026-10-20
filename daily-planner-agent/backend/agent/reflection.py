@@ -30,7 +30,10 @@ def reflect_on_schedule(schedule: List[Dict[str, Any]], tasks: List[Dict[str, An
     total_task_minutes = sum(t.get("duration_minutes", 0) for t in tasks if not t.get("fixed"))
     
     # Calculate available minutes (very simplified for reflection)
-    from ..tools.availability import _time_to_minutes
+    try:
+        from ..tools.availability import _time_to_minutes
+    except (ImportError, ValueError):
+        from tools.availability import _time_to_minutes
     if "start_time" in constraints and "end_time" in constraints:
         day_start = _time_to_minutes(constraints["start_time"])
         day_end = _time_to_minutes(constraints["end_time"])

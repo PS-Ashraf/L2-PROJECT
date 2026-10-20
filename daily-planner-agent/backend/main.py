@@ -26,9 +26,70 @@ class PlanRequest(BaseModel):
 class ChatRequest(BaseModel):
     message: str
 
+import httpx
+from fastapi.responses import JSONResponse
+from fastapi import status
+from config import settings
+
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok"}
+    """
+    Active system health check for backend API and Ollama LLM provider.
+
+    Response fields:
+        - status: "ok" if all services healthy, otherwise "degraded"
+        - backend: "ok"
+        - ollama: object containing host, model, status ("ok"|"unavailable"|"degraded"), and error if any
+
+    Returns:
+        HTTP 200: All components healthy.
+        HTTP 503: Critical dependency (Ollama) unavailable.
+    """
+    ollama_info = {
+        "status": "unknown",
+        "host": settings.OLLAMA_HOST,
+        "model": settings.OLLAMA_MODEL
+    }
+    is_healthy = True
+
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            resp = await client.get(f"{settings.OLLAMA_HOST}/api/tags")
+            if resp.status_code == 200:
+                data = resp.json()
+                models = [m.get("name", "") for m in data.get("models", [])]
+                model_found = any(settings.OLLAMA_MODEL in m for m in models)
+                ollama_info["status"] = "ok"
+                ollama_info["model_found"] = model_found
+                if not model_found:
+                    ollama_info["warning"] = f"Model '{settings.OLLAMA_MODEL}' not found in installed models: {models}"
+            else:
+                is_healthy = False
+                ollama_info["status"] = "degraded"
+                ollama_info["error"] = f"Ollama returned HTTP status {resp.status_code}"
+    except httpx.ConnectError:
+        is_healthy = False
+        ollama_info["status"] = "unavailable"
+        ollama_info["error"] = f"Connection refused to Ollama server at {settings.OLLAMA_HOST}"
+    except httpx.TimeoutException:
+        is_healthy = False
+        ollama_info["status"] = "unavailable"
+        ollama_info["error"] = f"Connection timed out connecting to Ollama server at {settings.OLLAMA_HOST}"
+    except Exception as e:
+        is_healthy = False
+        ollama_info["status"] = "unavailable"
+        err_msg = str(e).strip() or type(e).__name__
+        ollama_info["error"] = f"Unable to reach Ollama: {err_msg}"
+
+    payload = {
+        "status": "ok" if is_healthy else "degraded",
+        "backend": "ok",
+        "ollama": ollama_info
+    }
+
+    status_code = status.HTTP_200_OK if is_healthy else status.HTTP_503_SERVICE_UNAVAILABLE
+    return JSONResponse(status_code=status_code, content=payload)
+
 
 @app.post("/api/plan")
 async def plan_day(request: PlanRequest):

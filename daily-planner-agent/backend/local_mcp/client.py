@@ -20,15 +20,27 @@ class MCPClient:
     async def connect(self):
         from contextlib import AsyncExitStack
         self._exit_stack = AsyncExitStack()
-        
-        self._client = await self._exit_stack.enter_async_context(stdio_client(self.server_params))
-        read, write = self._client
-        self.session = await self._exit_stack.enter_async_context(ClientSession(read, write))
-        await self.session.initialize()
+        try:
+            self._client = await self._exit_stack.enter_async_context(stdio_client(self.server_params))
+            read, write = self._client
+            self.session = await self._exit_stack.enter_async_context(ClientSession(read, write))
+            await self.session.initialize()
+        except Exception:
+            if self._exit_stack:
+                await self._exit_stack.aclose()
+            self._exit_stack = None
+            self.session = None
+            self._client = None
+            raise
 
     async def disconnect(self):
         if self._exit_stack:
-            await self._exit_stack.aclose()
+            try:
+                await self._exit_stack.aclose()
+            finally:
+                self._exit_stack = None
+                self.session = None
+                self._client = None
             
     async def get_tools(self) -> List[Dict[str, Any]]:
         if not self.session:

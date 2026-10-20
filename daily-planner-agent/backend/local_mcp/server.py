@@ -40,31 +40,7 @@ def validate_schedule(schedule: Any = None, tasks: Any = None, constraints: Dict
     """Verify the generated schedule for conflicts, unscheduled tasks, and deadline violations."""
     return validate_schedule_impl(schedule, tasks, constraints)
 
-# Aliases with tool_ prefix for backward compatibility
-@mcp.tool()
-def tool_get_tasks(date: str = "") -> Dict[str, Any]:
-    """Retrieve the user's current tasks and events."""
-    return get_tasks_impl(date)
 
-@mcp.tool()
-def tool_estimate_task_duration(task_name: str) -> Dict[str, Any]:
-    """Determine or calculate the estimated duration of tasks."""
-    return estimate_task_duration_impl(task_name)
-
-@mcp.tool()
-def tool_get_available_time(date: str = "", start_time: str = "08:00", end_time: str = "20:00") -> Dict[str, Any]:
-    """Determine the user's available time based on start time, end time, and fixed events."""
-    return get_available_time_impl(date, start_time, end_time)
-
-@mcp.tool()
-def tool_create_schedule(tasks: Any = None, available_slots: Any = None, break_minutes: int = 15) -> Dict[str, Any]:
-    """Create a schedule from the actual tasks and available time."""
-    return create_schedule_impl(tasks, available_slots, break_minutes)
-
-@mcp.tool()
-def tool_validate_schedule(schedule: Any = None, tasks: Any = None, constraints: Dict[str, Any] = None) -> Dict[str, Any]:
-    """Verify the generated schedule for conflicts, unscheduled tasks, and deadline violations."""
-    return validate_schedule_impl(schedule, tasks, constraints)
 
 if __name__ == "__main__":
     mcp.run()
